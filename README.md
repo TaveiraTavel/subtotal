@@ -7,10 +7,10 @@ https://www.virustotal.com/gui/my-apikey
 
 ## Installation
 ```
-go install github.com/TaveiraTavel/subtotal@HEAD
+go install github.com/TaveiraTavel/subtotal@latest
 ```
 
 ## Usage
 ```
-echo example.org | subtotal <api-key>
+echo <domain> | subtotal <api-key>
 ```
