@@ -18,37 +18,38 @@ func main() {
 		domains = append(domains, stdin.Text())
 	}
 
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Usage: echo <domain> | %s <api-key>\n", os.Args[0])
-		os.Exit(0)
-	}
-
 	static.ShowBanner()
 
 	for _, domain := range domains {
-		url := "https://www.virustotal.com/api/v3/domains/" + fmt.Sprint(domain) + "/subdomains?limit=1966"
-		headers := map[string]string{
-			"accept":   "application/json",
-			"x-apikey": os.Args[1],
-		}
-
-		body, err := httpGet(url, headers)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		var jsonMap map[string]interface{}
-		json.Unmarshal([]byte(body), &jsonMap)
-
-		dataArray := jsonMap["data"].([]interface{})
-
-		for i := 0; i < len(dataArray); i++ {
-			subdomains := dataArray[i].(map[string]interface{})
-			id := subdomains["id"].(string)
-			fmt.Println(id)
-		}
+		virusTotalSeach(domain)
 	}
+}
+
+func virusTotalSeach(domain string) {
+	url := "https://www.virustotal.com/api/v3/domains/" + fmt.Sprint(domain) + "/subdomains?limit=1966"
+	headers := map[string]string{
+		"accept":   "application/json",
+		"x-apikey": os.Getenv("VT_API_KEY"),
+	}
+
+	body, err := httpGet(url, headers)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var jsonMap map[string]interface{}
+	json.Unmarshal([]byte(body), &jsonMap)
+
+	dataArray := jsonMap["data"].([]interface{})
+
+	for i := 0; i < len(dataArray); i++ {
+		subdomains := dataArray[i].(map[string]interface{})
+		id := subdomains["id"].(string)
+		fmt.Println(id)
+	}
+
+	return
 }
 
 func httpGet(url string, headers map[string]string) (string, error) {
@@ -69,7 +70,7 @@ func httpGet(url string, headers map[string]string) (string, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusUnauthorized {
-		return "", fmt.Errorf("error: %d Unauthorized - verify API-KEY", res.StatusCode)
+		return "", fmt.Errorf("error: %d Unauthorized\nVerify VT_API_KEY Enviroment Variable", res.StatusCode)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -83,3 +84,4 @@ func httpGet(url string, headers map[string]string) (string, error) {
 
 	return string(body), nil
 }
+
